@@ -1,0 +1,22 @@
+{
+  "name": "cljs-react-perf",
+  "version": "0.0.0+DEV",
+  "author": "Keming Labs, LLC",
+  "copyright": "Copyright (C) 2017 Keming Labs, LLC. All rights reserved.",
+  "main": "app/js/electron_main.js",
+  
+  "dependencies": {
+    "react": "15.4.2",
+    "react-dom": "15.4.2",
+    "react-addons-perf": "15.4.2"
+  },
+
+  "devDependencies": {
+    "electron": "1.6.2"
+  },
+
+  "scripts": {
+    "start": "electron app/js/electron_main.js"
+  }
+
+}
