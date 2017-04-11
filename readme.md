@@ -103,6 +103,15 @@ Lets explore what happens when the list items to be rendered are reordered betwe
 
 Well, it again looks like the overhead of keys aren't worth it when re-rendering minimal markup.
 
+The [sablono wiki](https://github.com/r0man/sablono/wiki/Optimization-Tips#avoid-for) suggests avoiding `for`, as it macroexpands into a huge pile of code.
+However, at least in the simplest case, the performance of a `for` list comprehension is not different than a lazy `map` or eager `reduce`:
+
+
+|  # | timing (ms) |                                        |
+|----|-------------|----------------------------------------|
+| 11 | 7 ± 3       | #1, but with `for` instead of `map`    |
+| 12 | 11 ± 4      | #1, but with `reduce` instead of `map` |
+
 
 ## On list event handlers
 

@@ -188,9 +188,42 @@
        (recur (dec n) (item-10 res))))])
 
 
+;;;;;;;;;;;;;
+;;Scenario 11
+
+(rum/defc item-11
+  [x]
+  [:.item x])
+
+(rum/defc list-11
+  [items]
+  [:.list
+   (for [i items]
+     (item-11 i))])
+
+(rum/defc app-11
+  [state]
+  [:.app
+   (list-11 (:items state))])
+
+;;;;;;;;;;;;;
+;;Scenario 12
 
 
+(rum/defc item-12
+  [x]
+  [:.item x])
 
+(rum/defc list-12
+  [items]
+  (reduce (fn [el i]
+            (conj el (item-12 i)))
+          [:.list] items))
+
+(rum/defc app-12
+  [state]
+  [:.app
+   (list-12 (:items state))])
 
 
 
@@ -243,7 +276,9 @@
                            "#app-7" app-7
                            "#app-8" app-8
                            "#app-9" app-9
-                           "#app-10" app-10)
+                           "#app-10" app-10
+                           "#app-11" app-11
+                           "#app-12" app-12)
 
                measurements (mapv profile (repeat n component))]
 
