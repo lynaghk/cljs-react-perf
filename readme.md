@@ -56,6 +56,18 @@ In terms of structure, there are only two source files:
 
 I'm trying to keep all the infrastructure very minimal, so there's no error handling, core.async, Leiningen plugins, or anything fancy.
 
+## How Sablono compiles hiccup to React elements
+
+@r0man, the author of Sablono, explained to me that Sablono compiles hiccup markup in two ways:
+
+1. **Macros**: If the markup is unambiguous (e.g., `[:div {}]`, which can only be interpreted as a div with no attributes and no children), Sablono will emit React elements at compile time via Clojure macros.
+
+1. **Runtime interpretation**:  if the markup is ambiguous (e.g., `[:div (foo)]`, where it's not clear whether the function `foo` returns an attribute map or children elements), then Sablono emits calls to its runtime interpreter.
+
+In theory, the macro approach should be faster than the runtime interpretation approach.
+
+For an overview of this architecture, see @gigamonkey's *Practical Common Lisp* chapters on an HTML generation library consisting of [an interpreter](http://www.gigamonkeys.com/book/practical-an-html-generation-library-the-interpreter.html) and [compiler](http://www.gigamonkeys.com/book/practical-an-html-generation-library-the-compiler.html).
+
 
 ## On lists
 
@@ -131,3 +143,14 @@ In any case, such nesting is a JS-engine limitation on what we can express in Re
 
 React deps are specified in `package.json` because that was the only way I could get `(js/require "react-addons-perf")` to work.
 I'm *pretty* sure that the React being used is the one that's pulled in via Rum/Sablono from cljsjs.
+
+
+## Reading / other projects
+
++ [js-framework-benchmark](https://github.com/krausest/js-framework-benchmark) is a project similar in spirit to this one, with a ton of different JS libraries. Seems to be for comparing libraries only; I couldn't find any discussion of the results or suggestions for which library/style to use or why. The author does discuss the methodology extensively on [their blog](http://www.stefankrause.net/wp/). Thanks [@thheller](https://github.com/thheller) for the tip!
+
++ [How to win in web framework benchmarks](https://medium.com/@localvoid/how-to-win-in-web-framework-benchmarks-8bc31af76ce7) details of several virtual DOM library tricks and links to several kinds of benchmarks. Thanks [@dmitriid](https://twitter.com/dmitriid/status/851475009981886464) for the tip!
+
++ [General CLJS performance tips](https://github.com/alexkehayias/chocolatier#performance) from a game developer. Once I get a handle on all this React stuff, I'd love to put together a suite of perf tests / examples for cljs in general. (But don't wait for me! If you want to dig into this, I'd be happy to chat about it!) Thanks [@shaunlebron](https://github.com/shaunlebron) for the tip!
+
++ [Sablono hacks](https://gist.github.com/rauhs/38b8598c6549f2fe09ad4d257382ec32) gist demonstrates how to "teach" Sablono to walk more Clojure forms, and thus emit React elements rather than calls to the Sablono runtime interpreter. Arguably, if this kind of thing works reliably, it should be merged upstream.
