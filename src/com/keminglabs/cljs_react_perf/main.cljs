@@ -206,9 +206,9 @@
   [:.app
    (list-11 (:items state))])
 
+
 ;;;;;;;;;;;;;
 ;;Scenario 12
-
 
 (rum/defc item-12
   [x]
@@ -224,6 +224,38 @@
   [state]
   [:.app
    (list-12 (:items state))])
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Scenario 13--16, annotating to avoid Sablono interpreter calls
+
+(defn make-attrs
+  []
+  {:data-some-attrs "a"})
+
+(rum/defc app-13
+  [state]
+  [:.app (for [i (range 1000)]
+           [:.child (make-attrs)])])
+
+(rum/defc app-14
+  [state]
+  [:.app (for [i (range 1000)]
+           ;;This isn't documented, but R0man told me about it in an email
+           ;;https://github.com/r0man/sablono/blob/fb5d756c4201598fe8737ae2877e76f9c25a96f1/src/sablono/compiler.clj#L150
+           [:.child ^:attrs (make-attrs)])])
+
+(rum/defc app-15
+  [state]
+  [:.app (for [i (range 1000)]
+           [:.child i])])
+
+(rum/defc app-16
+  [state]
+  [:.app (for [i (range 1000)] 
+           [:.child {} i])])
+
+
 
 
 
@@ -278,7 +310,11 @@
                            "#app-9" app-9
                            "#app-10" app-10
                            "#app-11" app-11
-                           "#app-12" app-12)
+                           "#app-12" app-12
+                           "#app-13" app-13
+                           "#app-14" app-14
+                           "#app-15" app-15
+                           "#app-16" app-16)
 
                measurements (mapv profile (repeat n component))]
 

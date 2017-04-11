@@ -69,6 +69,23 @@ In theory, the macro approach should be faster than the runtime interpretation a
 For an overview of this architecture, see @gigamonkey's *Practical Common Lisp* chapters on an HTML generation library consisting of [an interpreter](http://www.gigamonkeys.com/book/practical-an-html-generation-library-the-interpreter.html) and [compiler](http://www.gigamonkeys.com/book/practical-an-html-generation-library-the-compiler.html).
 
 
+## On preventing runtime interpretation
+
+In theory, Sablono should be faster when it knows more about your markup at compile time, and can emit React elements immediately rather than calls to the runtime interpretation machinery.
+Scenarios 13 and 14 below test the `:attrs` metadata tag (see the [sablono compiler source](https://github.com/r0man/sablono/blob/fb5d756c4201598fe8737ae2877e76f9c25a96f1/src/sablono/compiler.clj#L150)).
+Scenarios 15 and 16 test disambiguating attribute maps and children.
+
+
+|  # | timing (ms) |                                                                    |
+|----|-------------|--------------------------------------------------------------------|
+| 13 | 56 ± 11     | Function invocation that returns attribute map, with no :attrs tag |
+| 14 | 58 ± 11     | Function invocation that returns attribute map, with :attrs tag    |
+| 15 | 5 ± 2       | Ambiguous attr/content                                             |
+| 16 | 3 ± 2       | Unambiguous attr/content                                           |
+
+Looks like the real result here is that you should avoid invoking a function to return your attribute map.
+
+
 ## On lists
 
 In an app I'm currently working on, the slowest part is a list.
