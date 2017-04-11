@@ -43,12 +43,12 @@
         (Math/sqrt))))
 
 
-(defn start-benchmark! [app-name cb]
+(defn start-benchmark! [[app-name optimization-mode] cb]
   (let [^js/BrowserWindow w (BrowserWindow. (clj->js {:show false}))]
-    (.loadURL w (str "file://" js/__dirname "/../app.html#" app-name))
+    (.loadURL w (str "file://" js/__dirname "/../" optimization-mode ".html#" app-name))
 
     (p "\n-------------------")
-    (p app-name)
+    (p (str app-name " (" optimization-mode ")") )
 
     (.once ipc "measurements"
            (fn [e raw-measurements]
@@ -86,13 +86,24 @@
       (.quit app))))
 
 
+(def optimization-modes
+  ""
+
+  )
+
 (.on app "ready"
      (fn []
+
        (p "starting benchmarks")
-       (next-benchmark! ["app-1" "app-2" "app-3" "app-4" "app-5" "app-6" "app-7" "app-8" "app-9" "app-10" "app-11" "app-12" "app-13" "app-14" "app-15" "app-16"])
-       ;;(next-benchmark! ["app-13" "app-14" "app-15" "app-16"])
 
-
+       (next-benchmark! (->> ["app-1" "app-2" "app-3" "app-4" "app-5" "app-6" "app-7" "app-8" "app-9" "app-10" "app-11" "app-12" "app-13" "app-14" "app-15" "app-16"]
+                             (mapcat (fn [app-name]
+                                       (map vector 
+                                            (repeat app-name)
+                                            ;;These should correspond to the names of the html files
+                                            ["simple"
+                                             "simple2"
+                                             "advanced"])))))
 
 
 
