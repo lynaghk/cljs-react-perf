@@ -72,24 +72,29 @@ For an overview of this architecture, see @gigamonkey's *Practical Common Lisp* 
 ## On preventing runtime interpretation
 
 In theory, Sablono should be faster when it knows more about your markup at compile time, and can emit React elements immediately rather than calls to the runtime interpretation machinery.
-Scenarios 13 and 14 below test the `:attrs` metadata tag (see the [sablono compiler source](https://github.com/r0man/sablono/blob/fb5d756c4201598fe8737ae2877e76f9c25a96f1/src/sablono/compiler.clj#L150)).
-Scenarios 15 and 16 test disambiguating attribute maps and children.
 
+|  # | timing (ms) |                                                                            |
+|----|-------------|----------------------------------------------------------------------------|
+| 13 | 305 ± 50    | Function invocation that returns attribute map, with no :attrs tag         |
+| 14 | 297 ± 45    | Function invocation that returns attribute map, with :attrs tag            |
+| 15 | 28 ± 9      | Ambiguous attr/children (implicit empty attribute map)                     |
+| 16 | 16 ± 4      | Unambiguous attr/children (explicit empty attribute map)                   |
+| 17 | 17 ± 4      | Same as 13/14, with literal attribute map rather than function invocation  |
 
-|  # | timing (ms) |                                                                    |
-|----|-------------|--------------------------------------------------------------------|
-| 13 | 56 ± 11     | Function invocation that returns attribute map, with no :attrs tag |
-| 14 | 58 ± 11     | Function invocation that returns attribute map, with :attrs tag    |
-| 15 | 5 ± 2       | Ambiguous attr/content                                             |
-| 16 | 3 ± 2       | Unambiguous attr/content                                           |
+(The `:attrs` metadata tag is undocumented; see the [sablono compiler source](https://github.com/r0man/sablono/blob/fb5d756c4201598fe8737ae2877e76f9c25a96f1/src/sablono/compiler.clj#L150)).)
 
-Looks like the real result here is that you should avoid invoking a function to return your attribute map.
+I ran these tests with 5,000 children to emphasize the runtime differences.
+Even then, the differences are minor.
+(Perhaps not even different, depending on your statistical affinities.)
+
+Given the order of magnitude difference between 13/14 and 15/16/17, the real take away here is that runtime interpretation cost is negligible compared to the cost of a function call and map allocation.
 
 
 ## On lists
 
 In an app I'm currently working on, the slowest part is a list.
-There are two ways I can think of structuring a list.
+Here are tests with lists of 1,000 children:
+
 
 | # | timing (ms) |                                                                                                    |
 |---|-------------|----------------------------------------------------------------------------------------------------|

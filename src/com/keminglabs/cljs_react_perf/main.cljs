@@ -235,27 +235,34 @@
 
 (rum/defc app-13
   [state]
-  [:.app (for [i (range 1000)]
+  [:.app (for [i (range 5000)]
            [:.child (make-attrs)])])
 
 (rum/defc app-14
   [state]
-  [:.app (for [i (range 1000)]
+  [:.app (for [i (range 5000)]
            ;;This isn't documented, but R0man told me about it in an email
            ;;https://github.com/r0man/sablono/blob/fb5d756c4201598fe8737ae2877e76f9c25a96f1/src/sablono/compiler.clj#L150
            [:.child ^:attrs (make-attrs)])])
 
 (rum/defc app-15
   [state]
-  [:.app (for [i (range 1000)]
+  [:.app (for [i (range 5000)]
            [:.child i])])
 
 (rum/defc app-16
   [state]
-  [:.app (for [i (range 1000)] 
+  [:.app (for [i (range 5000)]
            [:.child {} i])])
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Scenario 17, what's the cost of just setting an attribute?
+
+(rum/defc app-17
+  [state]
+  [:.app (for [i (range 5000)]
+           [:.child {:data-some-attrs "a"}])])
 
 
 
@@ -314,7 +321,8 @@
                            "#app-13" app-13
                            "#app-14" app-14
                            "#app-15" app-15
-                           "#app-16" app-16)
+                           "#app-16" app-16
+                           "#app-17" app-17)
 
                measurements (mapv profile (repeat n component))]
 
