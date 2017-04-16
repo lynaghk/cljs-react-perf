@@ -81,7 +81,7 @@ In theory, Sablono should be faster when it knows more about your markup at comp
 | 16 | 16 ± 4      | Unambiguous attr/children (explicit empty attribute map)                   |
 | 17 | 17 ± 4      | Same as 13/14, with literal attribute map rather than function invocation  |
 
-(The `:attrs` metadata tag is undocumented; see the [sablono compiler source](https://github.com/r0man/sablono/blob/fb5d756c4201598fe8737ae2877e76f9c25a96f1/src/sablono/compiler.clj#L150)).)
+(The `:attrs` metadata tag is undocumented; see the [sablono compiler source](https://github.com/r0man/sablono/blob/fb5d756c4201598fe8737ae2877e76f9c25a96f1/src/sablono/compiler.clj#L150).)
 
 I ran these tests with 5,000 children to emphasize the runtime differences.
 Even then, the differences are minor.

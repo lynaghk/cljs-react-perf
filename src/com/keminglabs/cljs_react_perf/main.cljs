@@ -21,6 +21,12 @@
   (js/require "process"))
 
 
+(defn current-memory-usage
+  "Current memory usage in kB."
+  []
+  (aget (.getProcessMemoryInfo Process) "privateBytes"))
+
+
 ;;;;;;;;;;;;;;;;;;;;;
 ;;Scenario 1
 
@@ -280,15 +286,17 @@
     (.render js/ReactDOM (component @!state) (.getElementById js/document "container"))))
 
 
+
 (defn profile
   [component]
-  (let [[_ stats] (tufte/profiled {}
+  (let [mem-before (do (js/gc) (current-memory-usage))
+        [_ stats] (tufte/profiled {}
                                   (.start ReactPerf)
                                   (render! component)
-                                  (.stop ReactPerf))]
+                                  (.stop ReactPerf))
+        mem-after (current-memory-usage)]
 
-    {;;memory usage in kB
-     :private-memory (aget (.getProcessMemoryInfo Process) "privateBytes")
+    {:private-memory (- mem-after mem-before)
 
      :react-wasted (for [d (.getWasted ReactPerf)]
                      {:id (aget d "key")
@@ -299,8 +307,6 @@
      :tufte (for [[id d] (:id-stats-map stats)]
               ;;convert timing from nanoseconds to milliseconds
               {:id id :duration (* 1e-6 (:time d))})}))
-
-
 
 
 ;;Give the page a second for things to settle down or whatevs.

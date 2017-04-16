@@ -9,6 +9,9 @@
 (def BrowserWindow (.-BrowserWindow electron))
 (def ipc (.-ipcMain electron))
 
+;;Allow us to run v8 garbage collector from JavaScript via `gc()`.
+(.appendSwitch (.-commandLine app) "js-flags" "--expose-gc")
+
 ;;Don't use OS X dock icon, since it can steal focus away from our diligent hero and their terminal.
 (def dock (.-dock app))
 (when (exists? dock)
@@ -62,11 +65,9 @@
                                        (mapcat :tufte)
                                        (map :duration))]
 
-               ;; TODO: I can't take any of this memory stuff seriously until I can find a way to disable the garbage collector or otherwise get deterministic measurements
+               ;; TODO: why can't we get consistent measurements, even when invoking gc() before each re-render?
                ;; (prn "Memory growth per render (kB): "
-               ;;      (->> (map :private-memory measurements)
-               ;;           (partition 2 1)
-               ;;           (mapv #(apply - (reverse %)))))
+               ;;      (map :private-memory measurements))
 
                (p (str (Math/round (mean render-timings))
                        " ± "
@@ -93,7 +94,6 @@
 
 (.on app "ready"
      (fn []
-
        (p "starting benchmarks")
 
        (->>
@@ -118,5 +118,6 @@
        ;;     (.show dock))
        ;;   (let [^js/BrowserWindow w (BrowserWindow. (clj->js {:show true}))]
        ;;     (.openDevTools (.-webContents w))
-       ;;     (.loadURL w (str "file://" js/__dirname "/../app.html#app-5"))))
+       ;;     (.loadURL w (str "file://" js/__dirname "/../simple.html#app-1"))))
+
        ))
