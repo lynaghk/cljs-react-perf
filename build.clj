@@ -5,11 +5,11 @@
 
 (prn "Building electron")
 (cljs/build (cljs/inputs "src/")
-                               {:main 'com.keminglabs.cljs-react-perf.electron-main
-                                :output-to "app/js/electron_main.js"
-                                :output-dir "resources/out"
-                                ;;This has to be optimizations :simple. :none and :whitespace don't work w/ Electron because of some relative path stuff: http://dev.clojure.org/jira/browse/CLJS-1444
-                                :optimizations :simple})
+            {:main 'com.keminglabs.cljs-react-perf.electron-main
+             :output-to "app/js/electron_main.js"
+             :output-dir "resources/out"
+             ;;This has to be optimizations :simple. :none and :whitespace don't work w/ Electron because of some relative path stuff: http://dev.clojure.org/jira/browse/CLJS-1444
+             :optimizations :simple})
 (prn "Done.")
 
 

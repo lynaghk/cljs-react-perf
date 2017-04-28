@@ -47,36 +47,46 @@
 
 
 (defn start-benchmark! [[app-name optimization-mode] cb]
-  (let [^js/BrowserWindow w (BrowserWindow. (clj->js {:show false}))]
-    (.loadURL w (str "file://" js/__dirname "/../" optimization-mode ".html#" app-name))
+  (let [^js/BrowserWindow w (BrowserWindow. (clj->js {:show false}))
+        !measurements (atom [])]
 
-    (p "\n-------------------")
-    (p (str app-name " (" optimization-mode ")") )
+    (letfn [(finish []
+              (.close w)
+              (.removeListener ipc "ready" on-render-ready)
+              (.removeListener ipc "measurement" on-measurement)
 
-    (.once ipc "measurements"
-           (fn [e raw-measurements]
+              (let [render-timings (->> @!measurements
+                                        (drop 1) ;;Ignore the initial render time --- only want to measure re-render time
+                                        (mapcat :tufte)
+                                        (map :duration))]
 
-             ;;now that we have measurements back, close the browser window.
-             (.close w)
 
-             (let [measurements (js->clj raw-measurements :keywordize-keys true)
-                   render-timings (->> measurements
-                                       (drop 1) ;;Ignore the initial render time --- only want to measure re-render time
-                                       (mapcat :tufte)
-                                       (map :duration))]
+                (prn "Memory growth per render (kB): "
+                     (map :private-memory @!measurements))
 
-               ;; TODO: why can't we get consistent measurements, even when invoking gc() before each re-render?
-               ;; (prn "Memory growth per render (kB): "
-               ;;      (map :private-memory measurements))
+                (p (str (Math/round (mean render-timings))
+                        " ± "
+                        (Math/round (standard-deviation render-timings)))))
 
-               (p (str (Math/round (mean render-timings))
-                       " ± "
-                       (Math/round (standard-deviation render-timings))))
 
-               ;;(pp render-timings)
+              (cb @!measurements))
 
-               ;;invoke callback to indicate that we're done
-               (when cb (cb)))))))
+            (on-render-ready [e]
+              (if (= 10 (count @!measurements))
+                (finish)
+                ;;otherwise, ask for another set of measurements
+                (set! (.-returnValue e) app-name)))
+
+            (on-measurement [e raw-measurement]
+              (swap! !measurements conj (js->clj raw-measurement :keywordize-keys true))
+              (set! (.-returnValue e) nil))]
+
+      (p "\n-------------------")
+      (p (str app-name " (" optimization-mode ")") )
+
+      (.loadURL w (str "file://" js/__dirname "/../" optimization-mode ".html"))
+      (.on ipc "ready" on-render-ready)
+      (.on ipc "measurement" on-measurement))))
 
 
 (defn next-benchmark!
@@ -87,25 +97,20 @@
       (.quit app))))
 
 
-(def optimization-modes
-  ""
-
-  )
-
 (.on app "ready"
      (fn []
        (p "starting benchmarks")
 
        (->>
         ["app-1" "app-2" "app-3" "app-4" "app-5" "app-6" "app-7" "app-8" "app-9" "app-10" "app-11" "app-12" "app-13" "app-14" "app-15" "app-16"]
-        ;;["app-13" "app-14" "app-15" "app-16" "app-17"]
         (mapcat (fn [app-name]
                   (map vector
                        (repeat app-name)
                        ;;These should correspond to the names of the html files
                        ["simple"
-                        "simple2"
-                        "advanced"])))
+                        ;; "simple2"
+                        ;; "advanced"
+                        ])))
         next-benchmark!)
 
 

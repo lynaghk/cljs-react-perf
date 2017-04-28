@@ -3,11 +3,6 @@
   (:require [taoensso.tufte :as tufte]
             [rum.core :as rum]))
 
-
-(def n
-  "The number of times to render the requested component before returning measurements."
-  100)
-
 ;;export ELECTRON_ENABLE_LOGGING=true
 (enable-console-print!)
 
@@ -20,11 +15,13 @@
 (def Process
   (js/require "process"))
 
+(def v8
+  (js/require "v8"))
 
 (defn current-memory-usage
   "Current memory usage in kB."
   []
-  (aget (.getProcessMemoryInfo Process) "privateBytes"))
+  (aget (.getHeapStatistics v8) "used_heap_size"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -289,11 +286,15 @@
 
 (defn profile
   [component]
+
+  ;;(.unmountComponentAtNode js/ReactDOM (.getElementById js/document "container"))
+
   (let [mem-before (do (js/gc) (current-memory-usage))
         [_ stats] (tufte/profiled {}
-                                  (.start ReactPerf)
+                                  ;;(.start ReactPerf)
                                   (render! component)
-                                  (.stop ReactPerf))
+                                  ;;(.stop ReactPerf)
+                                  )
         mem-after (current-memory-usage)]
 
     {:private-memory (- mem-after mem-before)
@@ -311,25 +312,25 @@
 
 ;;Give the page a second for things to settle down or whatevs.
 (timeout 1000
-         (let [component (case (aget js/window "location" "hash")
-                           "#app-1" app-1
-                           "#app-2" app-2
-                           "#app-3" app-3
-                           "#app-4" app-4
-                           "#app-5" app-5
-                           "#app-6" app-6
-                           "#app-7" app-7
-                           "#app-8" app-8
-                           "#app-9" app-9
-                           "#app-10" app-10
-                           "#app-11" app-11
-                           "#app-12" app-12
-                           "#app-13" app-13
-                           "#app-14" app-14
-                           "#app-15" app-15
-                           "#app-16" app-16
-                           "#app-17" app-17)
-
-               measurements (mapv profile (repeat n component))]
-
-           (.send ipc "measurements" (clj->js measurements))))
+         (loop [x (.sendSync ipc "ready")]
+           (when-let [component (case x
+                                  "app-1" app-1
+                                  "app-2" app-2
+                                  "app-3" app-3
+                                  "app-4" app-4
+                                  "app-5" app-5
+                                  "app-6" app-6
+                                  "app-7" app-7
+                                  "app-8" app-8
+                                  "app-9" app-9
+                                  "app-10" app-10
+                                  "app-11" app-11
+                                  "app-12" app-12
+                                  "app-13" app-13
+                                  "app-14" app-14
+                                  "app-15" app-15
+                                  "app-16" app-16
+                                  "app-17" app-17
+                                  nil)]
+             (.sendSync ipc "measurement" (clj->js (profile component)))
+             (recur (.sendSync ipc "ready")))))

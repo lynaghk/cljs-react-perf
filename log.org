@@ -1,0 +1,31 @@
+* Development Log
+
+Notes to help me keep track of my thoughts / reasoning.
+
+
+* Apr 28: Tidy infrastructure w.r.t. memory usage
+To get reliable memory usage stats, we don't want measurement data accumulating in the render process.
+So lets dumb down the render process so it's controlled entirely by the main process.
+The render process should send a "ready" sync message to the main process, and the main responds w/ either the benchmark name it wants to run or tells the render process to quit.
+In the case of a benchmark, the render process will GC, run the benchmark, sync send the results back to main, and continue in that loop.
+
+* Apr 16: Pairing to measure memory
+
+Paired w/ António Monteiro ([@anmonteiro](https://github.com/anmonteiro)) to figure out best way to monitor memory usage.
+
+Initially started w/ Electron-provided `(aget (.getProcessMemoryInfo Process) "privateBytes")`, but we had a difficult time getting consistent measurements from it, even when forcing garbage collection between re-renders.
+
+We dug through the Electron/Chromium source to figure out what it was actually measuring.
+Looks like it ties into [base::ProcessMetrics::CreateCurrentProcessMetrics](https://github.com/electron/electron/blob/79b02ca71eaaf5504173a595e85d929f5c23e512/atom/common/api/atom_bindings.cc#L33), which seems to have kernel-specific implementations.
+Chromimum has a [file per operating system](https://chromium.googlesource.com/chromium/src/base/+/master/process).
+
+Since it's not returning consistent measurements, maybe it's because there's some low-level polling loop measuring memory usage, and that loop isn't synced up with the re-render loop of this benchmark framework.
+
+António suggested `(js/require "v8")` and `(aget (.getHeapStatistics v8) "used_heap_size")` to ask v8 directly.
+
+Initially this seemed unreliable, but we realized it was counting allocations due to log messages in dev tools, and once we turned dev tools off (looking at results printed to bash) the numbers stabilized.
+
+We also verified that this measures only the v8 heap --- creating a 1MB buffer only makes the heap grow ~300 bytes, as per the semantics of a [nodejs buffer](https://nodejs.org/api/buffer.html#buffer_buffer) being an off-heap allocation.
+
+
+
