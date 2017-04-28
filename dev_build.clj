@@ -13,8 +13,10 @@
 
 
 (.start (Thread. (fn []
-                   (cljs/build (cljs/inputs "src/")
+                   (cljs/watch (cljs/inputs "src/")
                                {:main 'com.keminglabs.cljs-react-perf.main
                                 :output-to "app/js/simple.js"
                                 :output-dir "resources/out"
-                                :optimizations :simple}))))
+                                ;; :infer-externs true
+                                ;; :optimizations :advanced
+                                }))))

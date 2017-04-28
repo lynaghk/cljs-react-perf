@@ -3,23 +3,28 @@
   (:require [taoensso.tufte :as tufte]
             [rum.core :as rum]))
 
+(set! *warn-on-infer* true)
+
 ;;export ELECTRON_ENABLE_LOGGING=true
 (enable-console-print!)
 
-(def ipc
-  (aget (js/require "electron") "ipcRenderer"))
+(def ^js/electron electron
+  (js/require "electron"))
 
-(def ReactPerf
+(def ipc
+  (.-ipcRenderer electron))
+
+(def ^js/ReactPerf ReactPerf
   (js/require "react-addons-perf"))
 
 (def Process
   (js/require "process"))
 
-(def v8
+(def ^js/v8 v8
   (js/require "v8"))
 
 (defn current-memory-usage
-  "Current memory usage in kB."
+  "Current memory usage in bytes."
   []
   (aget (.getHeapStatistics v8) "used_heap_size"))
 
@@ -280,7 +285,7 @@
 (defn render!
   [component]
   (tufte/p :react-render
-    (.render js/ReactDOM (component @!state) (.getElementById js/document "container"))))
+    (.render js/ReactDOM (component @!state) (js/document.getElementById "container"))))
 
 
 
@@ -291,10 +296,9 @@
 
   (let [mem-before (do (js/gc) (current-memory-usage))
         [_ stats] (tufte/profiled {}
-                                  ;;(.start ReactPerf)
+                                  (.start ReactPerf)
                                   (render! component)
-                                  ;;(.stop ReactPerf)
-                                  )
+                                  (.stop ReactPerf))
         mem-after (current-memory-usage)]
 
     {:private-memory (- mem-after mem-before)
@@ -305,9 +309,9 @@
                       :instance-count (aget d "instanceCount")
                       :render-count (aget d "renderCount")})
 
-     :tufte (for [[id d] (:id-stats-map stats)]
-              ;;convert timing from nanoseconds to milliseconds
-              {:id id :duration (* 1e-6 (:time d))})}))
+     :tufte  (for [[id d] (:id-stats-map stats)]
+               ;;convert timing from nanoseconds to milliseconds
+               {:id id :duration (* 1e-6 (:time d))})}))
 
 
 ;;Give the page a second for things to settle down or whatevs.

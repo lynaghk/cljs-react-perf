@@ -47,6 +47,13 @@ Then run:
     yarn start
     
 to actually execute the perf tests.
+EDN results are printed to stdout.
+You can specify benchmark names at the command line to only run those benchmarks.
+For example:
+
+    yarn start --silent app-1 app-2 > results.edn
+    
+Runs benchmarks `app-1` and `app-2` and saves the results to an EDN file for later processing.
 
 In terms of structure, there are only two source files:
 
